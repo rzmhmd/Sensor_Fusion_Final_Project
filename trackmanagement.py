@@ -136,25 +136,48 @@ class Trackmanagement:
         # print("meas_list =")
         # print(meas_list)
         # print(meas_list != 0)
+        # for i in unassigned_tracks:
+        #     track = self.track_list[i]
+        #     # print(track.P[0, 0])
+        #     # print(track.P[1, 1])
+        #     # check visibility
+        #     if meas_list:  # if not empty
+        #         # print("in_frame=" + meas_list[0].sensor.in_fov(track.x) != 0)
+        #         print(meas_list[0].sensor.in_fov(track.x) != 0)
+        #         if meas_list[0].sensor.in_fov(track.x):
+        #             # your code goes here
+        #             track.score = max(0, track.score - 1/params.window)
+        #             if ((track.score < params.delete_threshold and track.state == 'confirmed')
+        #                     or track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P):
+        #                 old_tracks.append(track)
+        # decrease score for unassigned tracks
         for i in unassigned_tracks:
             track = self.track_list[i]
-            # print(track.P[0, 0])
-            # print(track.P[1, 1])
             # check visibility
             if meas_list:  # if not empty
-                # print("in_frame=" + meas_list[0].sensor.in_fov(track.x) != 0)
-                print(meas_list[0].sensor.in_fov(track.x) != 0)
+                # TODO: why only the first measurement
                 if meas_list[0].sensor.in_fov(track.x):
-                    # your code goes here
-                    track.score = max(0, track.score - 1/params.window)
-                    if ((track.score < params.delete_threshold and track.state == 'confirmed')
-                            or track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P):
-                        old_tracks.append(track)
+                    track.score -= 1./params.window
+                    track.score = max(track.score, 0)
+
+        # delete old tracks
+        for track in self.track_list:
+            delete_track = False
+            if (track.state == 'initialized' or track.state == 'tentative') \
+                    and (track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P) \
+                    or track.score < 0.1:
+                delete_track = True
+
+            if track.state == 'confirmed' and track.score < params.delete_threshold:
+                delete_track = True
+
+            if delete_track:
+                self.delete_track(track)
 
         # delete old tracks
         # print(old_tracks)
-        for track in old_tracks:
-            self.delete_track(track)
+        # for track in old_tracks:
+        #     self.delete_track(track)
         ############
         # END student code
         ############
