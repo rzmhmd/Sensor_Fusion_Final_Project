@@ -35,12 +35,18 @@ class Filter:
         ############
         # TODO Step 1: implement and return system matrix F
         ############
-        F = np.zeros((6, 6), int)
-        np.fill_diagonal(F, 1)
-        F[0, 3] = self.dt
-        F[1, 4] = self.dt
-        F[2, 5] = self.dt
-        return F
+        # F = np.zeros((6, 6), int)
+        # np.fill_diagonal(F, 1)
+        # F[0, 3] = self.dt
+        # F[1, 4] = self.dt
+        # F[2, 5] = self.dt
+        # return F
+        return np.matrix([[1, 0, 0, self.dt, 0, 0],
+                          [0, 1, 0, 0, self.dt, 0],
+                          [0, 0, 1, 0, 0, self.dt],
+                          [0, 0, 0, 1, 0, 0],
+                          [0, 0, 0, 0, 1, 0, ],
+                          [0, 0, 0, 0, 0, 1]])
 
         ############
         # END student code
