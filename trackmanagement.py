@@ -119,74 +119,6 @@ class Trackmanagement:
         self.last_id = -1
         self.result_list = []
 
-    # def manage_tracks(self, unassigned_tracks, unassigned_meas, meas_list):
-    #     ############
-    #     # TODO Step 2: implement track management:
-    #     # - decrease the track score for unassigned tracks
-    #     # - delete tracks if the score is too low or P is too big (check params.py for parameters that might be helpful, but
-    #     # feel free to define your own parameters)
-    #     ############
-    #     old_tracks = []
-    #     # decrease score for unassigned tracks
-    #     # print(unassigned_tracks)
-    #     # print("unassigned_meas =")
-    #     # print(unassigned_meas)
-    #     # print("unassigned_tracks =")
-    #     # print(unassigned_tracks)
-    #     # print("meas_list =")
-    #     # print(meas_list)
-    #     # print(meas_list != 0)
-    #     # for i in unassigned_tracks:
-    #     #     track = self.track_list[i]
-    #     #     # print(track.P[0, 0])
-    #     #     # print(track.P[1, 1])
-    #     #     # check visibility
-    #     #     if meas_list:  # if not empty
-    #     #         # print("in_frame=" + meas_list[0].sensor.in_fov(track.x) != 0)
-    #     #         print(meas_list[0].sensor.in_fov(track.x) != 0)
-    #     #         if meas_list[0].sensor.in_fov(track.x):
-    #     #             # your code goes here
-    #     #             track.score = max(0, track.score - 1/params.window)
-    #     #             if ((track.score < params.delete_threshold and track.state == 'confirmed')
-    #     #                     or track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P):
-    #     #                 old_tracks.append(track)
-    #     # decrease score for unassigned tracks
-    #     for i in unassigned_tracks:
-    #         track = self.track_list[i]
-    #         # check visibility
-    #         if meas_list:  # if not empty
-    #             # TODO: why only the first measurement
-    #             if meas_list[0].sensor.in_fov(track.x):
-    #                 track.score -= 1./params.window
-    #                 track.score = max(track.score, 0)
-
-    #     # delete old tracks
-    #     for track in self.track_list:
-    #         delete_track = False
-    #         if (track.state == 'initialized' or track.state == 'tentative') \
-    #                 and (track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P) \
-    #                 or track.score < 0.1:
-    #             delete_track = True
-
-    #         if track.state == 'confirmed' and track.score < params.delete_threshold:
-    #             delete_track = True
-
-    #         if delete_track:
-    #             self.delete_track(track)
-
-    #     # delete old tracks
-    #     # print(old_tracks)
-    #     # for track in old_tracks:
-    #     #     self.delete_track(track)
-    #     ############
-    #     # END student code
-    #     ############
-
-    #     # initialize new track with unassigned measurement
-    #     for j in unassigned_meas:
-    #         # only initialize with lidar measurements
-    #         if meas_list[j].sensor.name == 'lidar':
-    #             self.init_track(meas_list[j])
     def manage_tracks(self, unassigned_tracks, unassigned_meas, meas_list):
         ############
         # TODO Step 2: implement track management:
@@ -194,27 +126,95 @@ class Trackmanagement:
         # - delete tracks if the score is too low or P is too big (check params.py for parameters that might be helpful, but
         # feel free to define your own parameters)
         ############
+        old_tracks = []
         # decrease score for unassigned tracks
+        # print(unassigned_tracks)
+        # print("unassigned_meas =")
+        # print(unassigned_meas)
+        # print("unassigned_tracks =")
+        # print(unassigned_tracks)
+        # print("meas_list =")
+        # print(meas_list)
+        # print(meas_list != 0)
         for i in unassigned_tracks:
             track = self.track_list[i]
+            # print(track.P[0, 0])
+            # print(track.P[1, 1])
             # check visibility
             if meas_list:  # if not empty
+                # print("in_frame=" + meas_list[0].sensor.in_fov(track.x) != 0)
+                print(meas_list[0].sensor.in_fov(track.x) != 0)
                 if meas_list[0].sensor.in_fov(track.x):
                     # your code goes here
-                    track.score -= 1. / params.window
+                    track.score = max(0, track.score - 1/params.window)
+                    if ((track.score < params.delete_threshold and track.state == 'confirmed')
+                            or track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P):
+                        old_tracks.append(track)
+        # # decrease score for unassigned tracks
+        # for i in unassigned_tracks:
+        #     track = self.track_list[i]
+        #     # check visibility
+        #     if meas_list:  # if not empty
+        #         # TODO: why only the first measurement
+        #         if meas_list[0].sensor.in_fov(track.x):
+        #             track.score -= 1./params.window
+        #             track.score = max(track.score, 0)
+
+        # # delete old tracks
+        # for track in self.track_list:
+        #     delete_track = False
+        #     if (track.state == 'initialized' or track.state == 'tentative') \
+        #             and (track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P) \
+        #             or track.score < 0.1:
+        #         delete_track = True
+
+        #     if track.state == 'confirmed' and track.score < params.delete_threshold:
+        #         delete_track = True
+
+        #     if delete_track:
+        #         self.delete_track(track)
+
         # delete old tracks
-        for track in self.track_list:
-            if ((track.state == 'confirmed' and track.score < params.delete_threshold) or (
-                    track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P)):
-                self.delete_track(track)
+        # print(old_tracks)
+        for track in old_tracks:
+            self.delete_track(track)
         ############
         # END student code
         ############
+
         # initialize new track with unassigned measurement
         for j in unassigned_meas:
             # only initialize with lidar measurements
             if meas_list[j].sensor.name == 'lidar':
                 self.init_track(meas_list[j])
+    # def manage_tracks(self, unassigned_tracks, unassigned_meas, meas_list):
+    #     ############
+    #     # TODO Step 2: implement track management:
+    #     # - decrease the track score for unassigned tracks
+    #     # - delete tracks if the score is too low or P is too big (check params.py for parameters that might be helpful, but
+    #     # feel free to define your own parameters)
+    #     ############
+    #     # decrease score for unassigned tracks
+    #     for i in unassigned_tracks:
+    #         track = self.track_list[i]
+    #         # check visibility
+    #         if meas_list:  # if not empty
+    #             if meas_list[0].sensor.in_fov(track.x):
+    #                 # your code goes here
+    #                 track.score -= 1. / params.window
+    #     # delete old tracks
+    #     for track in self.track_list:
+    #         if ((track.state == 'confirmed' and track.score < params.delete_threshold) or (
+    #                 track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P)):
+    #             self.delete_track(track)
+    #     ############
+    #     # END student code
+    #     ############
+    #     # initialize new track with unassigned measurement
+    #     for j in unassigned_meas:
+    #         # only initialize with lidar measurements
+    #         if meas_list[j].sensor.name == 'lidar':
+    #             self.init_track(meas_list[j])
 
     def addTrackToList(self, track):
         self.track_list.append(track)
@@ -229,33 +229,33 @@ class Trackmanagement:
         print('deleting track no.', track.id)
         self.track_list.remove(track)
 
-    # def handle_updated_track(self, track):
-    #     ############
-    #     # TODO Step 2: implement track management for updated tracks:
-    #     # - increase track score
-    #     # - set track state to 'tentative' or 'confirmed'
-    #     ############
-    #     track.score += 1./params.window
-    #     track.score = min(1, track.score)
-    #     if track.state == 'initialized' and track.score > params.confirmed_threshold/4:
-    #         track.state = 'tentative'
-    #     # track.score += 1/params.window
-    #     if track.state == 'tentative' and track.score > params.confirmed_threshold:
-    #         track.state = 'confirmed'
     def handle_updated_track(self, track):
         ############
         # TODO Step 2: implement track management for updated tracks:
         # - increase track score
         # - set track state to 'tentative' or 'confirmed'
         ############
-        track.score += 1.0 / params.window
-        tentative_threshold = 0.2 * params.confirmed_threshold
-        if (track.score > params.confirmed_threshold):
-            track.state = 'confirmed'
-        elif track.state == 'initialized' and track.score > tentative_threshold:
+        track.score += 1./params.window
+        track.score = min(1, track.score)
+        if track.state == 'initialized' and track.score > params.confirmed_threshold/4:
             track.state = 'tentative'
-        if (track.score > 1.0):
-            track.score = 1.0
+        # track.score += 1/params.window
+        if track.state == 'tentative' and track.score > params.confirmed_threshold:
+            track.state = 'confirmed'
+    # def handle_updated_track(self, track):
+    #     ############
+    #     # TODO Step 2: implement track management for updated tracks:
+    #     # - increase track score
+    #     # - set track state to 'tentative' or 'confirmed'
+    #     ############
+    #     track.score += 1.0 / params.window
+    #     tentative_threshold = 0.2 * params.confirmed_threshold
+    #     if (track.score > params.confirmed_threshold):
+    #         track.state = 'confirmed'
+    #     elif track.state == 'initialized' and track.score > tentative_threshold:
+    #         track.state = 'tentative'
+    #     if (track.score > 1.0):
+    #         track.score = 1.0
         ############
         # END student code
         ############
