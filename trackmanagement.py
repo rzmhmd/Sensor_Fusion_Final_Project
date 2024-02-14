@@ -39,25 +39,38 @@ class Track:
         # - initialize track state and track score with appropriate values
         ############
 
-        self.x = np.matrix([[0],
-                            [0],
-                            [0],
-                            [0],
-                            [0],
-                            [0]])
-        measured_data = meas.z
-        measured_data.append(1)
+        self.x = np.matrix([[49.53980697],
+                            [3.41006279],
+                            [0.91790581],
+                            [0.],
+                            [0.],
+                            [0.]])
+        # self.x = np.matrix([[0],
+        #                     [0],
+        #                     [0],
+        #                     [0.],
+        #                     [0.],
+        #                     [0.]])
+        self.P = np.matrix([[9.0e-02, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00],
+                            [0.0e+00, 9.0e-02, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00],
+                            [0.0e+00, 0.0e+00, 6.4e-03, 0.0e+00, 0.0e+00, 0.0e+00],
+                            [0.0e+00, 0.0e+00, 0.0e+00, 2.5e+03, 0.0e+00, 0.0e+00],
+                            [0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 2.5e+03, 0.0e+00],
+                            [0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 2.5e+01]])
+        # self.state = 'confirmed'
+        # self.score = 0
+        measured_data = np.ones((4, 1))
+        measured_data[0:3] = meas.z
         transfered_data = np.matmul(meas.sensor.sens_to_veh, measured_data)
         self.x[0:3] = transfered_data[0:3]
-        self.P = np.matrix([np.zeros(6, 6)])
         Rot_Mat = meas.sensor.sens_to_veh[0:3, 0:3]
         self.P[0:3, 0:3] = np.matmul(
-            np.matmul(Rot_Mat, meas.R), np.transpose(Rot_Mat))
+            np.matmul(M_rot, meas.R), np.transpose(M_rot))
         self.P[3:6, 3:6] = np.diag(
             [params.sigma_p44**2, params.sigma_p55**2, params.sigma_p66**2])
 
         self.state = 'initialized'
-        self.score = 1/params.window
+        self.score = 1./params.window
 
         ############
         # END student code
@@ -115,19 +128,31 @@ class Trackmanagement:
         ############
         old_tracks = []
         # decrease score for unassigned tracks
+        # print(unassigned_tracks)
+        # print("unassigned_meas =")
+        # print(unassigned_meas)
+        # print("unassigned_tracks =")
+        # print(unassigned_tracks)
+        # print("meas_list =")
+        # print(meas_list)
+        # print(meas_list != 0)
         for i in unassigned_tracks:
             track = self.track_list[i]
+            # print(track.P[0, 0])
+            # print(track.P[1, 1])
             # check visibility
             if meas_list:  # if not empty
+                # print("in_frame=" + meas_list[0].sensor.in_fov(track.x) != 0)
+                print(meas_list[0].sensor.in_fov(track.x) != 0)
                 if meas_list[0].sensor.in_fov(track.x):
                     # your code goes here
                     track.score = max(0, track.score - 1/params.window)
-                    if ((track.state == 'confirmed' and track.score < params.delete_threshold)
-                        or track.P[0, 0] > params.max_P
-                            or track.P[1, 1] > params.max_P):
+                    if ((track.score < params.delete_threshold and track.state == 'confirmed')
+                            or track.P[0, 0] > params.max_P or track.P[1, 1] > params.max_P):
                         old_tracks.append(track)
 
         # delete old tracks
+        # print(old_tracks)
         for track in old_tracks:
             self.delete_track(track)
         ############
@@ -159,9 +184,12 @@ class Trackmanagement:
         # - increase track score
         # - set track state to 'tentative' or 'confirmed'
         ############
-        track.state = 'tentative'
-        track.score += 1/params.window
-        if track.score > params.confirmed_threshold:
+        track.score += 1./params.window
+        track.score = min(1, track.score)
+        if track.state == 'initialized' and track.score > params.confirmed_threshold/4:
+            track.state = 'tentative'
+        # track.score += 1/params.window
+        if track.state == 'tentative' and track.score > params.confirmed_threshold:
             track.state = 'confirmed'
 
         ############
